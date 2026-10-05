@@ -25,9 +25,10 @@ class ProxyServiceProvider extends ServiceProvider
     {
         if ($this->app->runningInConsole()) {
             $this->registerPublishing();
+            $this->registerCommands();
         }
         $this->app->bind(Contracts\Configuration::class, static function ($app) {
-            return new Configuration($app['config']['proxy']);
+            return new Configuration($app['config']['proxy'] ?? []);
         });
         $this->app->bind(Contracts\ProxyGenerator::class, static function ($app) {
             return $app->make(ProxyGenerator::class);
@@ -47,5 +48,15 @@ class ProxyServiceProvider extends ServiceProvider
         $this->publishes([
             __DIR__.'/../config/proxy.php' => config_path('proxy.php'),
         ], 'config');
+    }
+
+    protected function registerCommands(): void
+    {
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                Console\CompileCommand::class,
+                Console\ClearCompiledCommand::class,
+            ]);
+        }
     }
 }
