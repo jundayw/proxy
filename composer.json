@@ -29,9 +29,15 @@
         "jundayw/composer-version-plugin": "^1.0"
     },
     "autoload": {
+        "files": [
+            "src/helper.php"
+        ],
+        "psr-0": {
+            "Proxy\\": "PSR-0/"
+        },
         "psr-4": {
             "Jundayw\\Proxy\\": "src/",
-            "Proxy\\": "proxy/"
+            "Proxy\\": "PSR-4/"
         }
     },
     "autoload-dev": {
