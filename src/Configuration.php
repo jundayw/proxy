@@ -9,60 +9,103 @@ class Configuration implements Contracts\Configuration
     ) {
     }
 
+    public function enabled(): bool
+    {
+        return $this->config['enabled'] ?? true;
+    }
+
+    public function enable(bool $enable): static
+    {
+        $this->config['enabled'] = $enable;
+
+        return $this;
+    }
+
     /**
      * @param string $classFQN
+     * @param bool   $inNamespace
      *
      * @return string
      */
-    public function getProxyNamespace(string $classFQN = ''): string
+    public function getProxyNamespaceName(string $classFQN = '', bool $inNamespace = true): string
     {
-        $namespace = $this->config['proxyNamespace'] ?: 'Proxy\\__NAMESPACE__';
-
-        return str_replace('__NAMESPACE__', $classFQN, $namespace);
+        return str_replace(
+            '__NAMESPACE__',
+            $classFQN,
+            "{$this->getNamespaceName($inNamespace)}\\__NAMESPACE__"
+        );
     }
 
     /**
-     * @param string $proxyNamespace
+     * @param bool $inNamespace
+     *
+     * @return string
+     */
+    public function getNamespaceName(bool $inNamespace = true): string
+    {
+        $psr0 = $this->config['PSR-0'] ?? 'Proxy\\';
+        $psr4 = $this->config['PSR-4'] ?? 'Proxy\\';
+
+        return trim($inNamespace ? $psr4 : $psr0, '\\');
+    }
+
+    /**
+     * @param string $namespace
+     * @param bool   $inNamespace
      *
      * @return static
      */
-    public function setProxyNamespace(string $proxyNamespace): static
+    public function setNamespaceName(string $namespace, bool $inNamespace = true): static
     {
-        $this->config['proxyNamespace'] = $proxyNamespace;
+        if ($inNamespace) {
+            $this->config['PSR-4'] = $namespace;
+        } else {
+            $this->config['PSR-0'] = $namespace;
+        }
 
         return $this;
     }
 
-    /**
-     * @return string
-     */
-    public function getTargetPath(): string
-    {
-        $path = $this->config['targetPath'] ?: '__PACKAGE__/proxy';
-
-        return str_replace('__PACKAGE__', realpath(__DIR__.'/../'), $path);
-    }
-
-    /**
-     * @param string $targetPath
-     *
-     * @return static
-     */
-    public function setTargetPath(string $targetPath): static
-    {
-        $this->config['targetPath'] = $targetPath;
-
-        return $this;
-    }
-
-    public function getProxyTargetFilePath(string $classFQN = ''): string
+    public function getProxyNamespacePath(string $classFQN = '', bool $inNamespace = true): string
     {
         $relative = str_replace('\\', DIRECTORY_SEPARATOR, $classFQN).'.php';
 
         return implode(DIRECTORY_SEPARATOR, [
-            rtrim($this->getTargetPath(), '\\/'),
+            rtrim($this->getNamespacePath($inNamespace), '\\/'),
             ltrim($relative, '\\/'),
         ]);
+    }
+
+    /**
+     * @param bool $inNamespace
+     *
+     * @return string
+     */
+    public function getNamespacePath(bool $inNamespace = true): string
+    {
+        $path0 = $this->config['path']['PSR-0'] ?? '__PACKAGE__/PSR-0';
+        $path4 = $this->config['path']['PSR-4'] ?? '__PACKAGE__/PSR-4';
+
+        return str_replace('__PACKAGE__', realpath(__DIR__.'/../'), $inNamespace ? $path4 : $path0);
+    }
+
+    /**
+     * @param string $path
+     * @param bool   $inNamespace
+     *
+     * @return static
+     */
+    public function setNamespacePath(string $path, bool $inNamespace = true): static
+    {
+        $this->config['path'] ??= [];
+
+        if ($inNamespace) {
+            $this->config['path']['PSR-4'] = $path;
+        } else {
+            $this->config['path']['PSR-0'] = $path;
+        }
+
+        return $this;
     }
 
     /**
@@ -91,6 +134,8 @@ class Configuration implements Contracts\Configuration
             $middlewares = [$middlewares];
         }
 
+        $this->config['middlewares'] ??= [];
+
         foreach ($middlewares as $middleware) {
             $this->config['middlewares'][] = $middleware;
         }
@@ -115,9 +160,9 @@ class Configuration implements Contracts\Configuration
     /**
      * @return array
      */
-    public function getInterfaces(): array
+    public function getProxyInterfaces(): array
     {
-        return $this->config['interfaces'] ?? [
+        return $this->config['proxy']['interfaces'] ?? [
             \Jundayw\Proxy\Contracts\Proxy::class,
         ];
     }
@@ -127,35 +172,148 @@ class Configuration implements Contracts\Configuration
      *
      * @return static
      */
-    public function setInterfaces(array $interfaces): static
+    public function setProxyInterfaces(array $interfaces): static
     {
-        $this->config['interfaces'] = $interfaces;
+        $this->config['proxy']               ??= [];
+        $this->config['proxy']['interfaces'] = $interfaces;
 
         return $this;
     }
 
-    public function addInterface(array|string $interfaces): static
+    public function addProxyInterface(array|string $interfaces): static
     {
         if (is_string($interfaces)) {
             $interfaces = [$interfaces];
         }
+
+        $this->config['proxy']               ??= [];
+        $this->config['proxy']['interfaces'] ??= [];
 
         foreach ($interfaces as $interface) {
-            $this->config['interfaces'][] = $interface;
+            $this->config['proxy']['interfaces'][] = $interface;
         }
 
         return $this;
     }
 
-    public function removeInterface(array|string $interfaces): static
+    public function removeProxyInterface(array|string $interfaces): static
     {
         if (is_string($interfaces)) {
             $interfaces = [$interfaces];
         }
 
-        $this->config['interfaces'] = array_filter(
+        $this->config['proxy']               ??= [];
+        $this->config['proxy']['interfaces'] = array_filter(
             $interfaces,
-            fn(string $interface) => !in_array($interface, $this->config['interfaces'])
+            fn(string $interface) => !in_array($interface, $this->config['proxy']['interfaces'])
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProxiedInterfaces(): array
+    {
+        return $this->config['proxied']['interfaces'] ?? [
+            \Jundayw\Proxy\Contracts\Proxied::class,
+        ];
+    }
+
+    /**
+     * @param array $interfaces
+     *
+     * @return static
+     */
+    public function setProxiedInterfaces(array $interfaces): static
+    {
+        $this->config['proxied']               ??= [];
+        $this->config['proxied']['interfaces'] = $interfaces;
+
+        return $this;
+    }
+
+    public function addProxiedInterface(array|string $interfaces): static
+    {
+        if (is_string($interfaces)) {
+            $interfaces = [$interfaces];
+        }
+
+        $this->config['proxied']               ??= [];
+        $this->config['proxied']['interfaces'] ??= [];
+
+        foreach ($interfaces as $interface) {
+            $this->config['proxied']['interfaces'][] = $interface;
+        }
+
+        return $this;
+    }
+
+    public function removeProxiedInterface(array|string $interfaces): static
+    {
+        if (is_string($interfaces)) {
+            $interfaces = [$interfaces];
+        }
+
+        $this->config['proxied']               ??= [];
+        $this->config['proxied']['interfaces'] = array_filter(
+            $interfaces,
+            fn(string $interface) => !in_array($interface, $this->config['proxied']['interfaces'])
+        );
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    public function getProxiedTraits(): array
+    {
+        return $this->config['proxied']['traits'] ?? [
+            \Jundayw\Proxy\Concerns\HasProxiedMethods::class,
+        ];
+    }
+
+    /**
+     * @param array $traits
+     *
+     * @return static
+     */
+    public function setProxiedTraits(array $traits): static
+    {
+        $this->config['proxied']           ??= [];
+        $this->config['proxied']['traits'] = $traits;
+
+        return $this;
+    }
+
+    public function addProxiedTrait(array|string $traits): static
+    {
+        if (is_string($traits)) {
+            $traits = [$traits];
+        }
+
+        $this->config['proxied']           ??= [];
+        $this->config['proxied']['traits'] ??= [];
+
+        foreach ($traits as $trait) {
+            $this->config['proxied']['traits'][] = $trait;
+        }
+
+        return $this;
+    }
+
+    public function removeProxiedTrait(array|string $traits): static
+    {
+        if (is_string($traits)) {
+            $traits = [$traits];
+        }
+
+        $this->config['proxied']           ??= [];
+        $this->config['proxied']['traits'] = array_filter(
+            $traits,
+            fn(string $trait) => !in_array($trait, $this->config['proxied']['traits'])
         );
 
         return $this;
@@ -188,6 +346,8 @@ class Configuration implements Contracts\Configuration
         if (is_string($attributes)) {
             $attributes = [$attributes];
         }
+
+        $this->config['attributes'] ??= [];
 
         foreach ($attributes as $attribute) {
             $this->config['attributes'][] = $attribute;
@@ -239,6 +399,8 @@ class Configuration implements Contracts\Configuration
             $attributes = [$attributes];
         }
 
+        $this->config['ignoreAttributes'] ??= [];
+
         foreach ($attributes as $attribute) {
             $this->config['ignoreAttributes'][] = $attribute;
         }
@@ -286,6 +448,8 @@ class Configuration implements Contracts\Configuration
             $classes = [$classes];
         }
 
+        $this->config['classes'] ??= [];
+
         foreach ($classes as $class) {
             $this->config['classes'][] = $class;
         }
@@ -332,6 +496,8 @@ class Configuration implements Contracts\Configuration
         if (is_string($directories)) {
             $directories = [$directories];
         }
+
+        $this->config['directories'] ??= [];
 
         foreach ($directories as $directory) {
             $this->config['directories'][] = $directory;

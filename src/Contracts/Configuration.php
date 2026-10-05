@@ -4,15 +4,21 @@ namespace Jundayw\Proxy\Contracts;
 
 interface Configuration
 {
-    public function getProxyNamespace(string $classFQN = ''): string;
+    public function enabled(): bool;
 
-    public function setProxyNamespace(string $proxyNamespace): static;
+    public function enable(bool $enable): static;
 
-    public function getTargetPath(): string;
+    public function getProxyNamespaceName(string $classFQN = '', bool $inNamespace = true): string;
 
-    public function setTargetPath(string $targetPath): static;
+    public function getNamespaceName(bool $inNamespace = true): string;
 
-    public function getProxyTargetFilePath(string $classFQN = ''): string;
+    public function setNamespaceName(string $namespace, bool $inNamespace = true): static;
+
+    public function getProxyNamespacePath(string $classFQN = '', bool $inNamespace = true): string;
+
+    public function getNamespacePath(bool $inNamespace = true): string;
+
+    public function setNamespacePath(string $path, bool $inNamespace = true): static;
 
     public function getMiddlewares(): array;
 
@@ -22,13 +28,29 @@ interface Configuration
 
     public function removeMiddleware(array|string $middlewares): static;
 
-    public function getInterfaces(): array;
+    public function getProxyInterfaces(): array;
 
-    public function setInterfaces(array $interfaces): static;
+    public function setProxyInterfaces(array $interfaces): static;
 
-    public function addInterface(array|string $interfaces): static;
+    public function addProxyInterface(array|string $interfaces): static;
 
-    public function removeInterface(array|string $interfaces): static;
+    public function removeProxyInterface(array|string $interfaces): static;
+
+    public function getProxiedInterfaces(): array;
+
+    public function setProxiedInterfaces(array $interfaces): static;
+
+    public function addProxiedInterface(array|string $interfaces): static;
+
+    public function removeProxiedInterface(array|string $interfaces): static;
+
+    public function getProxiedTraits(): array;
+
+    public function setProxiedTraits(array $traits): static;
+
+    public function addProxiedTrait(array|string $traits): static;
+
+    public function removeProxiedTrait(array|string $traits): static;
 
     public function getAttributes(): array;
 
