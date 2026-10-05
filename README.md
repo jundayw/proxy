@@ -14,7 +14,7 @@ A lightweight, type-safe, inheritance-based proxy and interception framework for
 
 ---
 
-## Overview / 概述
+# Overview / 概述
 
 **Jundayw Proxy** is a runtime proxy generation framework for modern PHP applications.
 
@@ -67,7 +67,7 @@ Original Business Class
 
 ---
 
-### Type Safety / 类型安全
+## Type Safety / 类型安全
 
 Generated proxy methods preserve the original method signatures.
 
@@ -97,7 +97,7 @@ public function execute(
 
 ---
 
-### Inheritance Compatibility / 继承兼容
+## Inheritance Compatibility / 继承兼容
 
 The generated proxy is based on the original class:
 
@@ -127,7 +127,7 @@ This allows the proxy to work naturally with existing PHP type declarations.
 
 ---
 
-### Attribute-driven Configuration / Attribute 驱动
+## Attribute-driven Configuration / Attribute 驱动
 
 Proxy behavior can be declared directly on classes and methods.
 
@@ -145,7 +145,7 @@ class OrderService
 
 ---
 
-### Non-invasive Interception / 非侵入式拦截
+## Non-invasive Interception / 非侵入式拦截
 
 Business code remains focused on business logic.
 
