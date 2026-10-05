@@ -1,6 +1,7 @@
 {
     "name": "jundayw/proxy",
-    "description": "This library aims to provide abstraction for generating various kinds of proxy classes.",
+    "version": "0.1.0",
+    "description": "A lightweight, type-safe, inheritance-based proxy and interception framework for PHP.",
     "keywords": [
         "proxy",
         "service proxies",
