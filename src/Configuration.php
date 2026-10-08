@@ -211,6 +211,14 @@ class Configuration implements Contracts\Configuration
         return $this;
     }
 
+    public function isProxied(string $className): bool
+    {
+        return count(array_filter(
+            $this->getProxiedInterfaces(),
+            fn($interface) => $interface === $className || is_subclass_of($interface, $className)
+        ));
+    }
+
     /**
      * @return array
      */

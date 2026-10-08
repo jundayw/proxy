@@ -1,7 +1,7 @@
 {
     "name": "jundayw/proxy",
     "version": "0.1.0",
-    "description": "A lightweight, type-safe, inheritance-based proxy and interception framework for PHP.",
+    "description": "A lightweight, type-safe, inheritance-based extension package for dynamic proxies and AOP(aspect-oriented programming).",
     "keywords": [
         "proxy",
         "service proxies",
@@ -22,7 +22,6 @@
     ],
     "require": {
         "php": "~8.2.0 || ~8.3.0 || ~8.4.0 || ~8.5.0",
-        "annotation/larscan": "^1.1",
         "laminas/laminas-code": "^4.17"
     },
     "require-dev": {
@@ -52,14 +51,6 @@
     "extra": {
         "branch-alias": {
             "dev-main": "1.x-dev"
-        },
-        "laravel": {
-            "providers": [
-                "Jundayw\\Proxy\\ProxyServiceProvider"
-            ],
-            "aliases": {
-                "Token": "Jundayw\\Proxy\\Facades\\Proxy"
-            }
         }
     },
     "config": {
